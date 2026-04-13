@@ -1,0 +1,31 @@
+name: 'woba_bookings_dbt'
+version: '1.0.0'
+config-version: 2
+
+profile: 'default'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  woba_bookings_dbt:
+    clean:
+      # Camada Clean: normalização 1:1 com o raw, cast de tipos e padronização de nomes.
+      # Incremental (merge) para não reprocessar o data lake inteiro a cada run.
+      +materialized: incremental
+    staging:
+      # Camada Staging: regras de negócio, cruzamentos entre entidades e enriquecimento.
+      # Incremental (merge) para manter performance com grandes volumes no Athena/Iceberg.
+      +materialized: incremental
+    marts:
+      # Camada DW: fatos e dimensões prontos para consumo pelo BI (Power BI), ad-hoc e IA.
+      # Materialização definida modelo a modelo (incremental merge ou append para SCD2).
+      +materialized: table

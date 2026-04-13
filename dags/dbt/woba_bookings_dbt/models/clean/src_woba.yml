@@ -1,0 +1,33 @@
+version: 2
+
+sources:
+  - name: raw_bookings
+    description: "Fontes brutas ingeridas via Airbyte/DLT do MySQL da aplicação principal da Woba"
+    database: woba_data_lake
+    schema: raw_bookings
+    loader: airbyte
+    loaded_at_field: updated_at
+    freshness:
+      warn_after: { count: 12, period: hour }
+      error_after: { count: 24, period: hour }
+    tables:
+      # ---- Tabelas fornecidas no teste ----
+      - name: bookings
+        description: "Transações de reservas realizadas na plataforma"
+      - name: spaces
+        description: "Catálogo de espaços de coworking parceiros"
+      - name: companies
+        description: "Empresas clientes (B2B) da Woba"
+      - name: plans
+        description: "Planos de assinatura de créditos"
+      # ---- Tabelas inferidas (necessárias) ----
+      - name: users
+        description: "Usuários que efetuam reservas"
+      - name: status
+        description: "Lookup de status da reserva (Confirmed, Cancelled, No-show, etc.)"
+      - name: booking_types
+        description: "Tipos de reserva (Individual, Meeting Room, etc.)"
+      - name: office_groups
+        description: "Agrupamento lógico de escritórios/espaços"
+      - name: reasons
+        description: "Motivos associados a cancelamentos ou alterações"

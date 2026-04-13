@@ -1,0 +1,3 @@
+company_id,company_name,company_size_tier,plan_name,plan_type,creditos_consumidos_trimestre,teto_creditos_trimestre,taxa_utilizacao_perc,media_geral_rede_perc,delta_vs_media,status_de_engajamento,churn_risk_level,suggested_action
+202,Tech Inactive Inc,Medium,Premium Woba,premium,50,300,16.6,65.5,-48.9,Crítico (Risco Churn),HIGH,Acionar CS para reunião de engajamento
+505,Low Engage SA,Medium,Enterprise Woba,enterprise,120,500,24.0,65.5,-41.5,Crítico (Risco Churn),HIGH,Acionar CS para reunião de engajamento

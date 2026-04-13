@@ -1,0 +1,147 @@
+version: 2
+
+models:
+  # =============================================
+  # CAMADA DW — FATOS
+  # =============================================
+  - name: fact_bookings
+    description: >
+      Tabela Fato principal do domínio Bookings.
+      Grain: uma linha por reserva individual (booking_id).
+      Contém métricas aditivas (créditos, receita, duração) e flags comportamentais.
+      Materialização: incremental com merge sobre booking_dw_sk.
+    columns:
+      - name: booking_dw_sk
+        description: "Surrogate Key gerada via dbt_utils.generate_surrogate_key"
+        tests:
+          - unique
+          - not_null
+      - name: booking_id
+        description: "Natural Key — identificador único da reserva na source"
+        tests:
+          - unique
+          - not_null
+      - name: company_id
+        description: "FK para dim_companies"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_companies')
+              field: company_id
+      - name: space_id
+        description: "FK para dim_spaces — usar space_dw_sk + point-in-time para join SCD2"
+        tests:
+          - not_null
+      - name: user_id
+        description: "FK para dim_users"
+        tests:
+          - not_null
+      - name: plan_id
+        description: "FK para dim_plans"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_plans')
+              field: plan_id
+      - name: credits_used
+        description: "Quantidade de créditos consumidos na reserva (fato aditivo)"
+      - name: revenue_brl
+        description: "Receita em BRL convertida via macro revenue_to_reais (fato aditivo)"
+      - name: duration_minutes
+        description: "Duração da reserva em minutos — calculada na staging via date_diff"
+      - name: booking_status_derived
+        description: "Status consolidado derivado de flags de negócio na staging"
+        tests:
+          - accepted_values:
+              values: ['cancelled', 'no_show', 'scheduled', 'completed', 'checked_in', 'unknown']
+      - name: is_cancelled
+        description: "Flag indicando cancelamento"
+        tests:
+          - accepted_values:
+              values: [true, false]
+      - name: is_no_show
+        description: "Flag indicando no-show (não compareceu)"
+        tests:
+          - accepted_values:
+              values: [true, false]
+
+  # =============================================
+  # CAMADA DW — DIMENSÕES
+  # =============================================
+  - name: dim_spaces
+    description: >
+      Dimensão de espaços de coworking com SCD Type 2.
+      Campos como tier, total_seats e category são versionados temporalmente.
+      Materialização: incremental com append (cada versão é uma nova linha).
+    columns:
+      - name: space_dw_sk
+        description: "Surrogate Key composta (space_id + source_updated_at) para unicidade de versão SCD2"
+        tests:
+          - unique
+          - not_null
+      - name: space_id
+        description: "Business Key do espaço — pode ter múltiplas linhas (versões)"
+        tests:
+          - not_null
+      - name: is_current_version
+        description: "Flag booleana indicando a versão ativa do espaço"
+        tests:
+          - accepted_values:
+              values: [true, false]
+
+  - name: dim_companies
+    description: >
+      Dimensão de empresas clientes (B2B) — SCD Type 1 via merge incremental.
+    columns:
+      - name: company_dw_sk
+        description: "Surrogate Key"
+        tests:
+          - unique
+          - not_null
+      - name: company_id
+        description: "Business Key"
+        tests:
+          - unique
+          - not_null
+      - name: company_size_tier
+        description: "Classificação de porte calculada na staging (Small/Medium/Large/Enterprise)"
+        tests:
+          - accepted_values:
+              values: ['Small', 'Medium', 'Large', 'Enterprise']
+
+  - name: dim_plans
+    description: >
+      Dimensão de planos de assinatura — SCD Type 1.
+    columns:
+      - name: plan_dw_sk
+        description: "Surrogate Key"
+        tests:
+          - unique
+          - not_null
+      - name: plan_id
+        description: "Business Key"
+        tests:
+          - unique
+          - not_null
+      - name: cost_per_credit
+        description: "Custo unitário por crédito — calculado na staging"
+
+  - name: dim_users
+    description: >
+      Dimensão de usuários/colaboradores — SCD Type 1.
+      Dados de PII (e-mail e telefone) mascarados na camada staging via macros mask_email e mask_phone para compliance LGPD.
+    columns:
+      - name: user_dw_sk
+        description: "Surrogate Key"
+        tests:
+          - unique
+          - not_null
+      - name: user_id
+        description: "Business Key"
+        tests:
+          - unique
+          - not_null
+      - name: email_masked
+        description: "E-mail com mascaramento parcial (ex: edu***@woba.com.br)"
+      - name: phone_masked
+        description: "Telefone com mascaramento parcial (ex: ***5432)"

@@ -1,0 +1,94 @@
+name: dbt CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'dags/dbt/woba_bookings_dbt/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'dags/dbt/woba_bookings_dbt/**'
+
+env:
+  DBT_PROFILES_DIR: ./dags/dbt/woba_bookings_dbt
+  DBT_PROJECT_DIR: ./dags/dbt/woba_bookings_dbt
+
+jobs:
+  # =========================================================
+  # 1. CONTINUOUS INTEGRATION (CI) - Roda em cada Pull Request
+  # =========================================================
+  ci_validation:
+    name: Validate Pull Request (CI)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt & Dependencies
+        run: |
+          pip install dbt-core dbt-athena-community
+          cd ${{ env.DBT_PROJECT_DIR }}
+          dbt deps
+
+      # Para evitar reprocessar todo o DW a cada PR, usamos Slim CI (--defer)
+      # que compara os arquivos locais com o manifest de produção e testa apenas o que mudou.
+      - name: Fetch Production State (manifest.json)
+        run: |
+          # Exemplo: aws s3 cp s3://woba-dbt-artifacts/prod/manifest.json ${{ env.DBT_PROJECT_DIR }}/state/manifest.json
+          echo "[Mock] Buscando manifest.json de produção para state comparison"
+          mkdir -p ${{ env.DBT_PROJECT_DIR }}/state
+
+      - name: dbt Build (Modified Models Only)
+        run: |
+          cd ${{ env.DBT_PROJECT_DIR }}
+          # Exemplo real de Slim CI (descomentado na vida real):
+          # dbt build --select state:modified+ --defer --state ./state
+          echo "[Mock] Validando schemas, SQL syntax e rodando testes apenas nos modelos afetados..."
+          dbt compile
+
+  # =========================================================
+  # 2. CONTINUOUS DEPLOYMENT (CD) - Roda ao fazer merge na Main
+  # =========================================================
+  cd_deployment:
+    name: Deploy to Production (CD)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt & Astronomer CLI
+        run: |
+          pip install dbt-core dbt-athena-community
+          curl -sSL install.astronomer.io | sudo bash -s
+
+      - name: Generate Artifacts & Docs
+        run: |
+          cd ${{ env.DBT_PROJECT_DIR }}
+          dbt deps
+          dbt compile # Gera um novo manifest.json fresco da main
+          dbt docs generate
+
+      - name: Upload Artifacts to S3 (Para alimentar a Slim CI)
+        run: |
+          # aws s3 cp ${{ env.DBT_PROJECT_DIR }}/target/manifest.json s3://woba-dbt-artifacts/prod/manifest.json
+          echo "[Mock] Manifest atualizado salvo no repositório de artefatos."
+
+      - name: Deploy DAGs to Airflow (Astronomer)
+        run: |
+          # astro deploy --workspace-id <WS_ID> --deployment-id <DEP_ID>
+          echo "[Mock] Deploy acionado para o Airflow de Produção."

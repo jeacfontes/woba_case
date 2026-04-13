@@ -1,0 +1,47 @@
+[
+  {
+    "company_id": 202,
+    "company_name": "Tech Inactive Inc",
+    "company_size_tier": "Medium",
+    "plan_name": "Premium Woba",
+    "plan_type": "premium",
+    "creditos_consumidos_trimestre": 50,
+    "teto_creditos_trimestre": 300,
+    "taxa_utilizacao_perc": 16.6,
+    "media_geral_rede_perc": 65.5,
+    "delta_vs_media": -48.9,
+    "status_de_engajamento": "Crítico (Risco Churn)",
+    "churn_risk_level": "HIGH",
+    "suggested_action": "Acionar CS para reunião de engajamento"
+  },
+  {
+    "company_id": 303,
+    "company_name": "Startup Lenta",
+    "company_size_tier": "Small",
+    "plan_name": "Starter Pack",
+    "plan_type": "starter",
+    "creditos_consumidos_trimestre": 25,
+    "teto_creditos_trimestre": 100,
+    "taxa_utilizacao_perc": 25.0,
+    "media_geral_rede_perc": 65.5,
+    "delta_vs_media": -40.5,
+    "status_de_engajamento": "Crítico (Risco Churn)",
+    "churn_risk_level": "HIGH",
+    "suggested_action": "Acionar CS para reunião de engajamento"
+  },
+  {
+    "company_id": 505,
+    "company_name": "Low Engage SA",
+    "company_size_tier": "Medium",
+    "plan_name": "Enterprise Woba",
+    "plan_type": "enterprise",
+    "creditos_consumidos_trimestre": 120,
+    "teto_creditos_trimestre": 500,
+    "taxa_utilizacao_perc": 24.0,
+    "media_geral_rede_perc": 65.5,
+    "delta_vs_media": -41.5,
+    "status_de_engajamento": "Crítico (Risco Churn)",
+    "churn_risk_level": "HIGH",
+    "suggested_action": "Acionar CS para reunião de engajamento"
+  }
+]
