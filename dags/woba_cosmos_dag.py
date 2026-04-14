@@ -20,12 +20,10 @@ woba_cosmos_dag = DbtDag(
         (Path(airflow_home) / "dags" / "dbt" / "woba_bookings_dbt").absolute().as_posix(),
     ),
     profile_config=profile_config,
-    execution_config=ExecutionConfig(
-        dbt_executable_path=f"{airflow_home}/dbt_venv/bin/dbt",
-    ),
     schedule="@daily",
     start_date=datetime(2023, 1, 1),
     catchup=False,
     dag_id="woba_bookings_dbt_dag",
     default_args={"retries": 2},
 )
+

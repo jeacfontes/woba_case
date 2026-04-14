@@ -1,0 +1,91 @@
+version: 2
+
+models:
+  - name: clean_bookings
+    description: "Tabela de transações de reservas primária. Aplica tipagem correta e nomenclaturas."
+    columns:
+      - name: booking_id
+        description: "ID transacional da reserva"
+        tests:
+          - unique
+          - not_null
+      - name: space_id
+        tests:
+          - not_null
+      - name: check_in_datetime
+        description: "Data de check-in."
+      - name: is_cancelled
+        tests:
+          - accepted_values:
+              values: [true, false]
+
+  - name: clean_spaces
+    description: "Espaços corporativos."
+    columns:
+      - name: space_id
+        tests:
+          - unique
+          - not_null
+
+  - name: clean_companies
+    description: "Empresas cadastradas."
+    columns:
+      - name: company_id
+        tests:
+          - unique
+          - not_null
+
+  - name: clean_plans
+    description: "Planos disponíveis para os clientes."
+    columns:
+      - name: plan_id
+        tests:
+          - unique
+          - not_null
+      - name: plan_value
+        description: "O valor não pode ser negativo."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between: # Bônus: caso tivessem o package de expectations
+              min_value: 0
+              config:
+                severity: warn
+
+  - name: clean_users
+    description: "Tabela inferida de usuários, extraída diretamente de fact_bookings para estruturar o modelo dimensional."
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+
+  - name: clean_status
+    description: "Tabela de domínio de Status da Reserva (Inferida)."
+    columns:
+      - name: status_id
+        tests:
+          - unique
+          - not_null
+
+  - name: clean_booking_types
+    description: "Tabela de domínio de Tipos de Reserva (Inferida)."
+    columns:
+      - name: booking_type_id
+        tests:
+          - unique
+          - not_null
+
+  - name: clean_office_groups
+    description: "Tabela de domínio de Grupos de Escritório (Inferida)."
+    columns:
+      - name: office_group_id
+        tests:
+          - unique
+          - not_null
+
+  - name: clean_reasons
+    description: "Tabela de domínio de Motivos de Cancelamento (Inferida)."
+    columns:
+      - name: reason_id
+        tests:
+          - unique
+          - not_null

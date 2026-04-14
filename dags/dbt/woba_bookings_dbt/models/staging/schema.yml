@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_bookings
+    description: "Tabela em Staging das reservas, enriquecida e com features processadas (Duração, Is Future)."
+    columns:
+      - name: booking_id
+        tests:
+          - unique
+          - not_null
+      - name: is_cancelled
+        tests:
+          - not_null
+      - name: check_in_datetime
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: timestamp
+              config:
+                severity: warn
+
+  - name: stg_spaces
+    description: "Tabela em Staging dos espaços, já com cálculo de conversão de lotação total vs assentos disponíveis (occupancy rate)."
+    columns:
+      - name: space_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_companies
+    description: "Tabela em Staging das empresas, enriquecida com a lógica do tamanho (tier baseado em número de colaboradores)."
+    columns:
+      - name: company_id
+        tests:
+          - unique
+          - not_null
+      - name: company_size_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Small', 'Medium', 'Enterprise']
+
+  - name: stg_plans
+    description: "Tabela em Staging de planos (com custo calculado por crédito)."
+    columns:
+      - name: plan_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_users
+    description: "Tabela em Staging dos usuários com aplicação final das macros LGPD na camada de views."
+    columns:
+      - name: user_id
+        tests:
+          - unique
+          - not_null
+      - name: email_masked
+        description: "Validação visual. O e-mail não deve bater com o campo sujo de base de logs."
+        tests:
+          - not_null
+      - name: phone_masked
+        tests:
+          - not_null
