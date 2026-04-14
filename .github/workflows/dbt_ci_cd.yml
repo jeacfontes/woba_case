@@ -36,7 +36,6 @@ jobs:
       - name: Install dbt & Dependencies
         run: |
           pip install dbt-core dbt-athena-community
-          cd ${{ env.DBT_PROJECT_DIR }}
           dbt deps
 
       # Para evitar reprocessar todo o DW a cada PR, usamos Slim CI (--defer)
@@ -49,7 +48,6 @@ jobs:
 
       - name: dbt Build (Modified Models Only)
         run: |
-          cd ${{ env.DBT_PROJECT_DIR }}
           # Exemplo real de Slim CI (descomentado na vida real):
           # dbt build --select state:modified+ --defer --state ./state
           echo "[Mock] Validando schemas, SQL syntax e rodando testes apenas nos modelos afetados..."
@@ -78,7 +76,6 @@ jobs:
 
       - name: Generate Artifacts & Docs
         run: |
-          cd ${{ env.DBT_PROJECT_DIR }}
           dbt deps
           dbt compile # Gera um novo manifest.json fresco da main
           dbt docs generate
